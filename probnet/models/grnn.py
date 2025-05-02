@@ -12,8 +12,45 @@ from probnet.models.base_net import BaseNet
 
 
 class GrnnRegressor(BaseNet, RegressorMixin):
+    """
+    General Regression Neural Network (GRNN) implementation.
+
+    Attributes
+    ----------
+    sigma : float
+        The bandwidth parameter for the kernel function.
+    kernel : str
+        The kernel function to use ('gaussian', 'laplace', 'epanechnikov').
+    metric : str
+        The distance metric to use ('euclidean', 'manhattan', 'cosine').
+    k_neighbors : int or None
+        The number of nearest neighbors to consider. If None, all training samples are used.
+    normalize_output : bool
+        Whether to normalize the output predictions.
+    kwargs : dict
+        Additional keyword arguments for customization.
+    """
+
     def __init__(self, sigma=1.0, kernel='gaussian', metric='euclidean',
                  k_neighbors=None, normalize_output=True, **kwargs):
+        """
+        Initialize the GRNN regressor.
+
+        Parameters
+        ----------
+        sigma : float, default=1.0
+            The bandwidth parameter for the kernel function.
+        kernel : str, default='gaussian'
+            The kernel function to use ('gaussian', 'laplace', 'epanechnikov').
+        metric : str, default='euclidean'
+            The distance metric to use ('euclidean', 'manhattan', 'cosine').
+        k_neighbors : int or None, default=None
+            The number of nearest neighbors to consider. If None, all training samples are used.
+        normalize_output : bool, default=True
+            Whether to normalize the output predictions.
+        kwargs : dict
+            Additional keyword arguments for customization.
+        """
         super().__init__(**kwargs)
         self.sigma = sigma
         self.kernel = kernel
@@ -22,6 +59,21 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         self.normalize_output = normalize_output
 
     def fit(self, X, y):
+        """
+        Fit the GRNN model to the training data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        self : GrnnRegressor
+            The fitted model.
+        """
         X, y = check_X_y(X, y)
         self.X_train_ = X
         self.y_train_ = y
@@ -34,7 +86,21 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         return self
 
     def _compute_distance(self, X1, X2):
-        """Tính khoảng cách giữa tất cả cặp X1 - X2 (vector hóa)."""
+        """
+        Compute the distance between all pairs of X1 and X2.
+
+        Parameters
+        ----------
+        X1 : array-like of shape (n_samples_1, n_features)
+            First set of samples.
+        X2 : array-like of shape (n_samples_2, n_features)
+            Second set of samples.
+
+        Returns
+        -------
+        distances : array-like of shape (n_samples_1, n_samples_2)
+            Pairwise distances between X1 and X2.
+        """
         if self.metric == 'euclidean':
             X1_sq = np.sum(X1 ** 2, axis=1).reshape(-1, 1)
             X2_sq = np.sum(X2 ** 2, axis=1).reshape(1, -1)
@@ -50,7 +116,19 @@ class GrnnRegressor(BaseNet, RegressorMixin):
             raise ValueError(f"Unsupported metric: {self.metric}")
 
     def _apply_kernel(self, distances):
-        """Áp dụng kernel lên ma trận khoảng cách."""
+        """
+        Apply the kernel function to the distance matrix.
+
+        Parameters
+        ----------
+        distances : array-like of shape (n_samples_1, n_samples_2)
+            Pairwise distances.
+
+        Returns
+        -------
+        weights : array-like of shape (n_samples_1, n_samples_2)
+            Kernel-applied weights.
+        """
         if self.kernel == 'gaussian':
             return np.exp(- (distances ** 2) / (2 * self.sigma ** 2))
         elif self.kernel == 'laplace':
@@ -64,6 +142,19 @@ class GrnnRegressor(BaseNet, RegressorMixin):
             raise ValueError(f"Unsupported kernel: {self.kernel}")
 
     def predict(self, X):
+        """
+        Predict target values for the given input data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data.
+
+        Returns
+        -------
+        predictions : array-like of shape (n_samples,)
+            Predicted target values.
+        """
         check_is_fitted(self, ["X_train_", "y_train_"])
         X = check_array(X)
 
