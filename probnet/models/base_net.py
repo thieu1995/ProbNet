@@ -16,50 +16,109 @@ from probnet.helpers.metrics import get_all_regression_metrics, get_all_classifi
 
 class BaseNet(BaseEstimator):
     """
-    class BaseNet(BaseEstimator):
-        A base class for implementing Extreme Learning Machines (ELM) with support for both classification and regression tasks.
+    Base class for neural network models. Inherits from `BaseEstimator` to integrate with scikit-learn pipelines.
 
-        Attributes
-        ----------
-        layer_sizes : list
-            List containing the sizes of each layer in the network.
+    Attributes
+    ----------
+    SUPPORTED_CLS_METRICS : dict
+        Dictionary of supported classification metrics.
+    SUPPORTED_REG_METRICS : dict
+        Dictionary of supported regression metrics.
+    CLS_OBJ_LOSSES : dict
+        Dictionary of classification objective losses.
 
-        act_name : str
-            The name of the activation function to be used.
-
-        network : object
-            The ELM network object.
-
-        loss_train : list
-            List of loss values recorded during training.
-
-        n_labels : int
-            Number of labels in the dataset.
+    Parameters
+    ----------
+    kwargs : dict
+        Additional keyword arguments for customization.
     """
-
     SUPPORTED_CLS_METRICS = get_all_classification_metrics()
     SUPPORTED_REG_METRICS = get_all_regression_metrics()
     CLS_OBJ_LOSSES = {}
 
     def __init__(self, **kwargs):
+        """
+        Initialize the BaseNet class.
+
+        Parameters
+        ----------
+        kwargs : dict
+            Additional keyword arguments for customization.
+        """
         super().__init__()
         self.kwargs = kwargs
         self.n_labels = None
 
     @staticmethod
     def _check_method(method=None, list_supported_methods=None):
+        """
+        Validate if the provided method is supported.
+
+        Parameters
+        ----------
+        method : str, optional
+            The method to validate.
+        list_supported_methods : list, optional
+            List of supported methods.
+
+        Returns
+        -------
+        str
+            The validated method.
+
+        Raises
+        ------
+        ValueError
+            If the method is not a string or not in the list of supported methods.
+        """
         if type(method) is str:
             return validator.check_str("method", method, list_supported_methods)
         else:
             raise ValueError(f"method should be a string and belongs to {list_supported_methods}")
 
     def fit(self, X, y):
+        """
+        Fit the model to the training data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+        """
         pass
 
     def predict(self, X):
+        """
+        Predict target values for the given input data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data.
+
+        Returns
+        -------
+        array-like
+            Predicted target values.
+        """
         pass
 
     def predict_proba(self, X):
+        """
+        Predict class probabilities for the given input data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data.
+
+        Returns
+        -------
+        array-like
+            Predicted class probabilities.
+        """
         pass
 
     def __evaluate_reg(self, y_true, y_pred, list_metrics=("MSE", "MAE")):
@@ -268,4 +327,3 @@ class BaseNet(BaseEstimator):
         if filename[-4:] != ".pkl":
             filename += ".pkl"
         return pickle.load(open(f"{load_path}/{filename}", 'rb'))
-
