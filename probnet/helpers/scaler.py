@@ -12,6 +12,10 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler, Ro
 
 
 class OneHotEncoder:
+    """
+    Encode categorical features as a one-hot numeric array.
+    This is useful for converting categorical variables into a format that can be provided to ML algorithms.
+    """
     def __init__(self):
         self.categories_ = None
 
@@ -156,6 +160,10 @@ class ObjectiveScaler:
 
 
 class Log1pScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the natural logarithm (base e) to each element of the input data.
+    This is useful for transforming data that may have a long tail distribution.
+    """
 
     def fit(self, X, y=None):
         # LogETransformer doesn't require fitting, so we simply return self.
@@ -171,6 +179,10 @@ class Log1pScaler(BaseEstimator, TransformerMixin):
 
 
 class LogeScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the natural logarithm (base e) to each element of the input data.
+    This is useful for transforming data that may have a long tail distribution.
+    """
 
     def fit(self, X, y=None):
         # LogETransformer doesn't require fitting, so we simply return self.
@@ -186,6 +198,10 @@ class LogeScaler(BaseEstimator, TransformerMixin):
 
 
 class SqrtScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the square root transformation to each element of the input data.
+    This is useful for transforming data that may have a long tail distribution.
+    """
 
     def fit(self, X, y=None):
         # SqrtScaler doesn't require fitting, so we simply return self.
@@ -201,6 +217,10 @@ class SqrtScaler(BaseEstimator, TransformerMixin):
 
 
 class BoxCoxScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the Box-Cox transformation to stabilize variance and make the data more normally distributed.
+    The Box-Cox transformation is only defined for positive data.
+    """
 
     def __init__(self, lmbda=None):
         self.lmbda = lmbda
@@ -222,6 +242,10 @@ class BoxCoxScaler(BaseEstimator, TransformerMixin):
 
 
 class YeoJohnsonScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the Yeo-Johnson transformation to stabilize variance and make the data more normally distributed.
+    The Yeo-Johnson transformation can handle both positive and negative data.
+    """
 
     def __init__(self, lmbda=None):
         self.lmbda = lmbda
@@ -243,6 +267,11 @@ class YeoJohnsonScaler(BaseEstimator, TransformerMixin):
 
 
 class SinhArcSinhScaler(BaseEstimator, TransformerMixin):
+    """
+    Apply the sinh-arc-sinh transformation to increase kurtosis and skewness of normal random variable.
+    This transformation is useful for data that are normally distributed but need to be transformed to have
+    higher kurtosis and skewness.
+    """
     # https://stats.stackexchange.com/questions/43482/transformation-to-increase-kurtosis-and-skewness-of-normal-r-v
     def __init__(self, epsilon=0.1, delta=1.0):
         self.epsilon = epsilon
