@@ -5,19 +5,19 @@
 # --------------------------------------------------%
 
 import numpy as np
-from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.base import RegressorMixin
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from probnet.models.base_net import BaseNet
 
 
 class GrnnRegressor(BaseNet, RegressorMixin):
-    def __init__(self, sigma=1.0, metric='euclidean', kernel='gaussian',
+    def __init__(self, sigma=1.0, kernel='gaussian', metric='euclidean',
                  k_neighbors=None, normalize_output=True, **kwargs):
         super().__init__(**kwargs)
         self.sigma = sigma
-        self.metric = metric
         self.kernel = kernel
+        self.metric = metric
         self.k_neighbors = k_neighbors
         self.normalize_output = normalize_output
 
@@ -53,7 +53,7 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         """Áp dụng kernel lên ma trận khoảng cách."""
         if self.kernel == 'gaussian':
             return np.exp(- (distances ** 2) / (2 * self.sigma ** 2))
-        elif self.kernel == 'laplacian':
+        elif self.kernel == 'laplace':
             return np.exp(- distances / self.sigma)
         elif self.kernel == 'epanechnikov':
             mask = distances <= self.sigma
