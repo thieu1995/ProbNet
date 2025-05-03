@@ -20,9 +20,9 @@ class GrnnRegressor(BaseNet, RegressorMixin):
     sigma : float
         The bandwidth parameter for the kernel function.
     kernel : str
-        The kernel function to use ('gaussian', 'laplace', 'epanechnikov').
-    metric : str
-        The distance metric to use ('euclidean', 'manhattan', 'cosine').
+        The kernel function to use ('gaussian', 'laplace', 'epanechnikov',...).
+    dist : str
+        The distance method to use ('euclidean', 'manhattan', 'cosine',...).
     k_neighbors : int or None
         The number of nearest neighbors to consider. If None, all training samples are used.
     normalize_output : bool
@@ -31,7 +31,10 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         Additional keyword arguments for customization.
     """
 
-    def __init__(self, sigma=1.0, kernel='gaussian', metric='euclidean',
+    SUPPORTED_KERNELS = ['gaussian', 'laplace', 'cauchy', 'epanechnikov']
+    SUPPORTED_METRICS = ['euclidean', 'manhattan']
+
+    def __init__(self, sigma=1.0, kernel='gaussian', dist='euclidean',
                  k_neighbors=None, normalize_output=True, **kwargs):
         """
         Initialize the GRNN regressor.
@@ -41,9 +44,9 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         sigma : float, default=1.0
             The bandwidth parameter for the kernel function.
         kernel : str, default='gaussian'
-            The kernel function to use ('gaussian', 'laplace', 'epanechnikov').
-        metric : str, default='euclidean'
-            The distance metric to use ('euclidean', 'manhattan', 'cosine').
+            The kernel function to use ('gaussian', 'laplace', 'epanechnikov',...).
+        dist : str, default='euclidean'
+            The distance method to use ('euclidean', 'manhattan', 'cosine',...).
         k_neighbors : int or None, default=None
             The number of nearest neighbors to consider. If None, all training samples are used.
         normalize_output : bool, default=True
@@ -51,10 +54,7 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         kwargs : dict
             Additional keyword arguments for customization.
         """
-        super().__init__(**kwargs)
-        self.sigma = sigma
-        self.kernel = kernel
-        self.metric = metric
+        super().__init__(sigma, kernel, dist, **kwargs)
         self.k_neighbors = k_neighbors
         self.normalize_output = normalize_output
 
@@ -80,66 +80,10 @@ class GrnnRegressor(BaseNet, RegressorMixin):
 
         # Dùng NearestNeighbors nếu có k_neighbors
         if self.k_neighbors is not None:
-            self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors, metric=self.metric)
+            self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors, metric=self.dist)
             self.nn_.fit(X)
 
         return self
-
-    def _compute_distance(self, X1, X2):
-        """
-        Compute the distance between all pairs of X1 and X2.
-
-        Parameters
-        ----------
-        X1 : array-like of shape (n_samples_1, n_features)
-            First set of samples.
-        X2 : array-like of shape (n_samples_2, n_features)
-            Second set of samples.
-
-        Returns
-        -------
-        distances : array-like of shape (n_samples_1, n_samples_2)
-            Pairwise distances between X1 and X2.
-        """
-        if self.metric == 'euclidean':
-            X1_sq = np.sum(X1 ** 2, axis=1).reshape(-1, 1)
-            X2_sq = np.sum(X2 ** 2, axis=1).reshape(1, -1)
-            return np.sqrt(np.maximum(X1_sq - 2 * X1 @ X2.T + X2_sq, 0))
-        elif self.metric == 'manhattan':
-            return np.sum(np.abs(X1[:, None, :] - X2[None, :, :]), axis=2)
-        elif self.metric == 'cosine':
-            X1_norm = X1 / np.linalg.norm(X1, axis=1, keepdims=True)
-            X2_norm = X2 / np.linalg.norm(X2, axis=1, keepdims=True)
-            cosine_sim = X1_norm @ X2_norm.T
-            return 1 - cosine_sim
-        else:
-            raise ValueError(f"Unsupported metric: {self.metric}")
-
-    def _apply_kernel(self, distances):
-        """
-        Apply the kernel function to the distance matrix.
-
-        Parameters
-        ----------
-        distances : array-like of shape (n_samples_1, n_samples_2)
-            Pairwise distances.
-
-        Returns
-        -------
-        weights : array-like of shape (n_samples_1, n_samples_2)
-            Kernel-applied weights.
-        """
-        if self.kernel == 'gaussian':
-            return np.exp(- (distances ** 2) / (2 * self.sigma ** 2))
-        elif self.kernel == 'laplace':
-            return np.exp(- distances / self.sigma)
-        elif self.kernel == 'epanechnikov':
-            mask = distances <= self.sigma
-            w = np.zeros_like(distances)
-            w[mask] = 1 - (distances[mask] / self.sigma) ** 2
-            return w
-        else:
-            raise ValueError(f"Unsupported kernel: {self.kernel}")
 
     def predict(self, X):
         """
@@ -161,7 +105,7 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         if self.k_neighbors is not None:
             # Chỉ dùng k hàng xóm gần nhất
             distances, indices = self.nn_.kneighbors(X, return_distance=True)
-            weights = self._apply_kernel(distances)
+            weights = self.kernel_func(distances, self.sigma)
             preds = []
             for i in range(X.shape[0]):
                 y_neighbors = self.y_train_[indices[i]]
@@ -178,8 +122,8 @@ class GrnnRegressor(BaseNet, RegressorMixin):
 
         else:
             # Dùng toàn bộ dữ liệu huấn luyện
-            distances = self._compute_distance(X, self.X_train_)  # shape (n_test, n_train)
-            weights = self._apply_kernel(distances)               # shape (n_test, n_train)
+            distances = self.dist_func(X, self.X_train_)  # shape (n_test, n_train)
+            weights = self.kernel_func(distances, self.sigma)               # shape (n_test, n_train)
 
             numerator = weights @ self.y_train_                   # (n_test,)
             if self.normalize_output:
@@ -189,7 +133,7 @@ class GrnnRegressor(BaseNet, RegressorMixin):
                 return numerator
 
     def score(self, X, y):
-        """Return the real R2 (Coefficient of Determination) metric, not (Pearson’s Correlation Index)^2 like Scikit-Learn library.
+        """Return the real R2 (Coefficient of Determination) method, not (Pearson’s Correlation Index)^2 like Scikit-Learn library.
 
         Parameters
         ----------
@@ -203,7 +147,7 @@ class GrnnRegressor(BaseNet, RegressorMixin):
         Returns
         -------
         result : float
-            The result of selected metric
+            The result of selected method
         """
         return self._BaseNet__score_reg(X, y, "R2")
 
