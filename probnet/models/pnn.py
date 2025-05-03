@@ -62,7 +62,7 @@ class PnnClassifier(BaseNet, ClassifierMixin):
         super().__init__(**kwargs)
         self.sigma = sigma
         self.set_kernel(kernel)
-        self.metric = metric
+        self.set_metric(metric)
         self.normalize_output = normalize_output
         self.class_prior = class_prior
         self.sample_weights = sample_weights
