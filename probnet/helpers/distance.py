@@ -329,3 +329,216 @@ def morisita_horn_distance(x1, x2):
         The Morisita-Horn distance between x1 and x2.
     """
     return 1 - (np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / np.sum(np.maximum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1))
+
+
+def dice_distance(x1, x2):
+    """
+    Compute the Dice distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Dice distance between x1 and x2.
+    """
+    return 1 - (2 * np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / (np.sum(x1[:, np.newaxis, :], axis=-1) + np.sum(x2[np.newaxis, :, :], axis=-1)))
+
+
+def kappa_distance(x1, x2):
+    """
+    Compute the Kappa distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Kappa distance between x1 and x2.
+    """
+    return 1 - (np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / np.sum(np.maximum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1))
+
+
+def rogers_distance(x1, x2):
+    """
+    Compute the Rogers distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Rogers distance between x1 and x2.
+    """
+    return 1 - (np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / np.sum(np.maximum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1))
+
+
+def jensen_distance(x1, x2):
+    """
+    Compute the Jensen distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Jensen distance between x1 and x2.
+    """
+    return 1 - (np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / np.sum(np.maximum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1))
+
+
+def jensen_shannon_distance(x1, x2):
+    """
+    Compute the Jensen-Shannon distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Jensen-Shannon distance between x1 and x2.
+    """
+    return 1 - (np.sum(np.minimum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1) / np.sum(np.maximum(x1[:, np.newaxis, :], x2[np.newaxis, :, :]), axis=-1))
+
+
+def hellinger_distance(x1, x2):
+    """
+    Compute the Hellinger distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Hellinger distance between x1 and x2.
+    """
+    return np.sqrt(np.sum((np.sqrt(x1[:, np.newaxis, :]) - np.sqrt(x2[np.newaxis, :, :])) ** 2, axis=-1))
+
+
+def bhattacharyya_distance(x1, x2):
+    """
+    Compute the Bhattacharyya distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Bhattacharyya distance between x1 and x2.
+    """
+    return -np.log(np.sum(np.sqrt(x1[:, np.newaxis, :] * x2[np.newaxis, :, :])))
+
+
+def cityblock_distance(x1, x2):
+    """
+    Compute the Cityblock distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Cityblock distance between x1 and x2.
+    """
+    return np.sum(np.abs(x1[:, np.newaxis, :] - x2[np.newaxis, :, :]), axis=-1)
+
+
+def cosine_distance(x1, x2):
+    """
+    Compute the Cosine distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Cosine distance between x1 and x2.
+    """
+    return 1 - np.sum(x1[:, np.newaxis, :] * x2[np.newaxis, :, :], axis=-1) / (np.linalg.norm(x1[:, np.newaxis, :], axis=-1) * np.linalg.norm(x2[np.newaxis, :, :], axis=-1))
+
+
+def correlation_distance(x1, x2):
+    """
+    Compute the Correlation distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+
+    Returns
+    -------
+    distance : float
+        The Correlation distance between x1 and x2.
+    """
+    return 1 - np.corrcoef(x1[:, np.newaxis, :], x2[np.newaxis, :, :])[0, 1]
+
+
+def mahalanobis_distance(x1, x2, VI=None):
+    """
+    Compute the Mahalanobis distance between all pairs of x1 and x2.
+
+    Parameters
+    ----------
+    x1 : array-like of shape (n_features,)
+        First point.
+    x2 : array-like of shape (n_features,)
+        Second point.
+    VI : array-like of shape (n_features, n_features), optional
+        The inverse covariance matrix. If None, the covariance matrix is used.
+
+    Returns
+    -------
+    distance : float
+        The Mahalanobis distance between x1 and x2.
+    """
+    if VI is None:
+        VI = np.linalg.inv(np.cov(x1, rowvar=False))
+    return np.sqrt(np.dot(np.dot((x1 - x2), VI), (x1 - x2).T))
