@@ -11,6 +11,8 @@ from pathlib import Path
 from sklearn.base import BaseEstimator
 from permetrics import RegressionMetric, ClassificationMetric
 from probnet.helpers import validator
+from probnet.helpers import kernel as kernel_module
+from probnet.helpers import distance as distance_module
 from probnet.helpers.metrics import get_all_regression_metrics, get_all_classification_metrics
 
 
@@ -26,18 +28,36 @@ class BaseNet(BaseEstimator):
         Dictionary of supported regression metrics.
     CLS_OBJ_LOSSES : dict
         Dictionary of classification objective losses.
+    SUPPORTED_KERNELS : list
+        List of supported kernel functions.
+    SUPPORTED_METRICS : list
+        List of supported distance metrics.
 
     Parameters
     ----------
+    sigma : float, default=1.0
+        The bandwidth parameter for the kernel function.
+    kernel : str, default='gaussian'
+        The kernel function to use.
+    dist : str, default='euclidean'
+        The distance metric to use.
     kwargs : dict
         Additional keyword arguments for customization.
     """
+
     SUPPORTED_CLS_METRICS = get_all_classification_metrics()
     SUPPORTED_REG_METRICS = get_all_regression_metrics()
     CLS_OBJ_LOSSES = {}
 
-    SUPPORTED_KERNELS = ['gaussian', 'laplace', 'cauchy', 'epanechnikov']
-    SUPPORTED_METRICS = ['euclidean', 'manhattan']
+    SUPPORTED_KERNELS = ["gaussian", "laplace", "cauchy", "epanechnikov", "uniform",
+                         "triangular", "quartic", "cosine", "logistic", "sigmoid",
+                         "multiquadric", "inverse_multiquadric", "rational_quadratic",
+                         "exponential", "power", "linear", "bessel", "vonmises", "vonmises_fisher"]
+    SUPPORTED_METRICS = ['euclidean', 'manhattan', "chebyshev", "minkowski", "hamming", "canberra",
+                         "braycurtis", "jaccard", "sokalmichener", "sokalsneath", "russellrao",
+                         "yule", "kulsinski", "rogers_tanimoto", "kulczynski", "morisita", "morisita_horn",
+                         "dice", "kappa", "rogers", "jensen", "jensen_shannon", "hellinger",
+                         "bhattacharyya", "cityblock", "cosin", "correlation", "mahalanobis"]
 
     def __init__(self, sigma=1.0, kernel='gaussian', dist='euclidean', **kwargs):
         """
@@ -45,6 +65,12 @@ class BaseNet(BaseEstimator):
 
         Parameters
         ----------
+        sigma : float, default=1.0
+            The bandwidth parameter for the kernel function.
+        kernel : str, default='gaussian'
+            The kernel function to use.
+        dist : str, default='euclidean'
+            The distance metric to use.
         kwargs : dict
             Additional keyword arguments for customization.
         """
@@ -62,9 +88,10 @@ class BaseNet(BaseEstimator):
         Parameters
         ----------
         kernel : str
-            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov').
+            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov',...).
         """
         self.kernel = validator.check_str("kernel", kernel, self.SUPPORTED_KERNELS)
+        self.kernel_func = getattr(kernel_module, f"{self.kernel}_kernel")
 
     def set_dist(self, dist):
         """
@@ -73,9 +100,10 @@ class BaseNet(BaseEstimator):
         Parameters
         ----------
         dist : str
-            The distance metric to use ('euclidean', 'manhattan').
+            The distance metric to use ('euclidean', 'manhattan',...).
         """
         self.dist = validator.check_str("dist", dist, self.SUPPORTED_METRICS)
+        self.dist_func = getattr(distance_module, f"{self.dist}_distance")
 
     def fit(self, X, y):
         """
