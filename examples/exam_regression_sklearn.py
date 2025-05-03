@@ -33,7 +33,7 @@ def get_cross_val_score(X, y, cv=3):
         Cross-validation scores for each fold.
     """
     ## Train and test
-    model = GrnnRegressor(sigma=1.0, kernel='laplace', metric='manhattan', k_neighbors=None, normalize_output=True)
+    model = GrnnRegressor(sigma=1.0, kernel='laplace', dist='manhattan', k_neighbors=None, normalize_output=True)
     return cross_val_score(model, X, y, cv=cv)
 
 
@@ -59,7 +59,7 @@ def get_pipe_line(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2)
 
     ## Train and test
-    model = GrnnRegressor(sigma=1.0, kernel='laplace', metric='manhattan', k_neighbors=None, normalize_output=True)
+    model = GrnnRegressor(sigma=1.0, kernel='laplace', dist='manhattan', k_neighbors=None, normalize_output=True)
 
     pipe = Pipeline([
         ("dt", DataTransformer(scaling_methods=("standard", "minmax"))),
@@ -94,9 +94,21 @@ def get_grid_search(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2)
 
     para_grid = {
-        'sigma': np.linspace(0.1, 5.0, 50),
-        'kernel': ('gaussian', 'laplace', "epanechnikov"),
-        "metric": ('euclidean', 'manhattan', 'cosine'),
+        'sigma': np.linspace(0.1, 1.0, 3),
+        'kernel': ("gaussian", "laplace", "cauchy", "epanechnikov", "uniform", "triangular",
+                   "quartic", "cosine", "logistic", "sigmoid", "multiquadric", "inverse_multiquadric",
+                   "rational_quadratic", "exponential", "power", "linear", "bessel", "vonmises", "vonmises_fisher"),
+        "dist": ('euclidean', 'manhattan', "chebyshev", "minkowski", "hamming", "canberra",
+                 "braycurtis", "jaccard", "sokalmichener", "sokalsneath", "russellrao",
+                 "yule", "kulsinski", "rogers_tanimoto", "kulczynski", "morisita", "morisita_horn",
+                 "dice", "kappa", "rogers", "jensen", "jensen_shannon", "hellinger",
+                 "bhattacharyya", "cityblock", "cosin", "correlation", "mahalanobis"),
+    }
+
+    para_grid = {
+        'sigma': np.linspace(0.1, 1.0, 3),
+        'kernel': ("gaussian", "laplace", "cauchy", "epanechnikov"),
+        "dist": ('euclidean', 'manhattan', "chebyshev"),
     }
 
     ## Create a gridsearch
@@ -106,6 +118,7 @@ def get_grid_search(X, y):
     print("Best parameters found: ", clf.best_params_)
     print("Best model: ", clf.best_estimator_)
     print("Best training score: ", clf.best_score_)
+    print(clf)
 
     ## Predict
     y_pred = clf.predict(X_test)
