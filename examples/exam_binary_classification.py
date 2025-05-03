@@ -24,7 +24,7 @@ data.y_train, scaler_y = data.encode_label(data.y_train)
 data.y_test = scaler_y.transform(data.y_test)
 
 ## Train and test
-# model = PnnClassifier(sigma=1.0, kernel='laplace', metric='manhattan', normalize_output=True)
+# model = PnnClassifier(sigma=1.0, kernel='laplace', dist='manhattan', normalize_output=True)
 model = PnnClassifier(sigma=1.0)
 model.fit(data.X_train, data.y_train)
 
