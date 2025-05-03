@@ -9,7 +9,7 @@ Please include these citations if you plan to use this library::
         title        = {ProbNet: A Unified Probabilistic Neural Network Framework for Classification and Regression Tasks},
         month        = may,
         year         = 2025,
-        doi         = {10.6084/m9.figshare.28802531},
+        doi         = {10.6084/m9.figshare.28802435},
         url          = {https://github.com/thieu1995/ProbNet}
     }
 
