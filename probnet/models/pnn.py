@@ -7,8 +7,6 @@
 import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array
-from probnet.helpers import kernel as kernel_module
-from probnet.helpers import distance as distance_module
 from probnet.models.base_net import BaseNet
 
 
@@ -21,9 +19,9 @@ class PnnClassifier(BaseNet, ClassifierMixin):
     sigma : float
         The bandwidth parameter for the kernel function.
     kernel : str
-        The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov').
-    metric : str
-        The distance metric to use ('euclidean', 'manhattan').
+        The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov',...).
+    dist : str
+        The distance method to use ('euclidean', 'manhattan',...).
     normalize_output : bool
         Whether to normalize the output probabilities.
     class_prior : array-like or None
@@ -37,7 +35,7 @@ class PnnClassifier(BaseNet, ClassifierMixin):
     SUPPORTED_KERNELS = ['gaussian', 'laplace', 'cauchy', 'epanechnikov']
     SUPPORTED_METRICS = ['euclidean', 'manhattan']
 
-    def __init__(self, sigma=1.0, kernel='gaussian', metric='euclidean',
+    def __init__(self, sigma=1.0, kernel='gaussian', dist='euclidean',
                  normalize_output=True, class_prior=None, sample_weights=None, **kwargs):
         """
         Initialize the PNN Classifier.
@@ -47,9 +45,9 @@ class PnnClassifier(BaseNet, ClassifierMixin):
         sigma : float, default=1.0
             The bandwidth parameter for the kernel function.
         kernel : str, default='gaussian'
-            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov').
-        metric : str, default='euclidean'
-            The distance metric to use ('euclidean', 'manhattan').
+            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov',...).
+        dist : str, default='euclidean'
+            The distance method to use ('euclidean', 'manhattan',...).
         normalize_output : bool, default=True
             Whether to normalize the output probabilities.
         class_prior : array-like or None, default=None
@@ -59,39 +57,10 @@ class PnnClassifier(BaseNet, ClassifierMixin):
         kwargs : dict
             Additional keyword arguments for customization.
         """
-        super().__init__(**kwargs)
-        self.sigma = sigma
-        self.set_kernel(kernel)
-        self.set_metric(metric)
+        super().__init__(sigma, kernel, dist, **kwargs)
         self.normalize_output = normalize_output
         self.class_prior = class_prior
         self.sample_weights = sample_weights
-
-    def set_kernel(self, kernel):
-        """
-        Set the kernel function.
-
-        Parameters
-        ----------
-        kernel : str
-            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov').
-        """
-        if kernel not in self.SUPPORTED_KERNELS:
-            raise ValueError(f"Unsupported kernel: {kernel}. Supported kernels are: {self.SUPPORTED_KERNELS}")
-        self.kernel = kernel
-
-    def set_metric(self, metric):
-        """
-        Set the distance metric.
-
-        Parameters
-        ----------
-        metric : str
-            The distance metric to use ('euclidean', 'manhattan').
-        """
-        if metric not in self.SUPPORTED_METRICS:
-            raise ValueError(f"Unsupported metric: {metric}. Supported metrics are: {self.SUPPORTED_METRICS}")
-        self.metric = metric
 
     def fit(self, X, y):
         """
@@ -115,8 +84,6 @@ class PnnClassifier(BaseNet, ClassifierMixin):
         self.classes_ = np.unique(y)
         self.n_labels = len(self.classes_)
         self.class_indices_ = {cls: np.where(y == cls)[0] for cls in self.classes_}
-        self.kernel_func = getattr(kernel_module, f"{self.kernel}_kernel")
-        self.metric_func = getattr(distance_module, f"{self.metric}_distance")
         return self
 
     def _estimate_class_scores(self, X):
@@ -133,7 +100,7 @@ class PnnClassifier(BaseNet, ClassifierMixin):
         probs : array-like of shape (n_samples, n_classes)
             Estimated class scores.
         """
-        distances = self.metric_func(X, self.X_train_)
+        distances = self.dist_func(X, self.X_train_)
         kernel_values = self.kernel_func(distances, self.sigma)
 
         probs = np.zeros((X.shape[0], len(self.classes_)))
