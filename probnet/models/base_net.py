@@ -36,7 +36,10 @@ class BaseNet(BaseEstimator):
     SUPPORTED_REG_METRICS = get_all_regression_metrics()
     CLS_OBJ_LOSSES = {}
 
-    def __init__(self, **kwargs):
+    SUPPORTED_KERNELS = ['gaussian', 'laplace', 'cauchy', 'epanechnikov']
+    SUPPORTED_METRICS = ['euclidean', 'manhattan']
+
+    def __init__(self, sigma=1.0, kernel='gaussian', dist='euclidean', **kwargs):
         """
         Initialize the BaseNet class.
 
@@ -46,35 +49,33 @@ class BaseNet(BaseEstimator):
             Additional keyword arguments for customization.
         """
         super().__init__()
+        self.sigma = sigma
+        self.set_kernel(kernel)
+        self.set_dist(dist)
         self.kwargs = kwargs
         self.n_labels = None
 
-    @staticmethod
-    def _check_method(method=None, list_supported_methods=None):
+    def set_kernel(self, kernel):
         """
-        Validate if the provided method is supported.
+        Set the kernel function.
 
         Parameters
         ----------
-        method : str, optional
-            The method to validate.
-        list_supported_methods : list, optional
-            List of supported methods.
-
-        Returns
-        -------
-        str
-            The validated method.
-
-        Raises
-        ------
-        ValueError
-            If the method is not a string or not in the list of supported methods.
+        kernel : str
+            The kernel function to use ('gaussian', 'laplace', 'cauchy', 'epanechnikov').
         """
-        if type(method) is str:
-            return validator.check_str("method", method, list_supported_methods)
-        else:
-            raise ValueError(f"method should be a string and belongs to {list_supported_methods}")
+        self.kernel = validator.check_str("kernel", kernel, self.SUPPORTED_KERNELS)
+
+    def set_dist(self, dist):
+        """
+        Set the distance metric.
+
+        Parameters
+        ----------
+        dist : str
+            The distance metric to use ('euclidean', 'manhattan').
+        """
+        self.dist = validator.check_str("dist", dist, self.SUPPORTED_METRICS)
 
     def fit(self, X, y):
         """
@@ -204,7 +205,7 @@ class BaseNet(BaseEstimator):
         float
             Computed score based on the specified method.
         """
-        metric = self._check_method(metric, list(self.SUPPORTED_CLS_METRICS.keys()))
+        metric = validator.check_str("metric", metric, list(self.SUPPORTED_CLS_METRICS.keys()))
         return_prob = False
         if self.n_labels > 2:
             if metric in self.CLS_OBJ_LOSSES:
